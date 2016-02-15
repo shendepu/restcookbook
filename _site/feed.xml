@@ -1,0 +1,536 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title></title>
+    <description></description>
+    <link>http://www.restcookbook.com/</link>
+    <atom:link href="http://www.restcookbook.com/feed.xml" rel="self" type="application/rss+xml"/>
+    <pubDate>Mon, 15 Feb 2016 14:46:52 +0800</pubDate>
+    <lastBuildDate>Mon, 15 Feb 2016 14:46:52 +0800</lastBuildDate>
+    <generator>Jekyll v3.1.1</generator>
+    
+      <item>
+        <title>How do I know which HTTP methods are supported</title>
+        <description>&lt;h2 class=&quot;question&quot;&gt;I want to figure out which methods are supported on a resource.&lt;/h2&gt;
+
+&lt;p&gt;use the &lt;span class=&quot;http_method&quot;&gt;OPTIONS&lt;/span&gt; method for this:&lt;/p&gt;
+
+&lt;figure class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-xml&quot; data-lang=&quot;xml&quot;&gt;OPTIONS /my/resource HTTP/1.1
+Host: example.org
+
+HTTP/1.1 200 OK
+Allow: HEAD,GET,DELETE,OPTIONS&lt;/code&gt;&lt;/pre&gt;&lt;/figure&gt;
+
+&lt;p&gt;Even though it&#39;s not defined, this method CAN return a message body. It will return an ALLOW header, that returns
+    all the methods the current resource is capable of handling.&lt;/p&gt;
+
+&lt;p&gt;If resources require authentication, it is possible that OPTIONS returns more methods once you added authentication
+    headers to the request.&lt;/p&gt;
+
+&lt;figure class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-xml&quot; data-lang=&quot;xml&quot;&gt;OPTIONS /a/resource HTTP/1.1
+Host: example.org
+
+HTTP/1.1 200 OK
+Allow: HEAD,GET,OPTIONS&lt;/code&gt;&lt;/pre&gt;&lt;/figure&gt;
+
+&lt;figure class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-xml&quot; data-lang=&quot;xml&quot;&gt;OPTIONS /a/resource HTTP/1.1
+Host: example.org
+Authentication: .....
+
+HTTP/1.1 200 OK
+Allow: HEAD,GET,PUT,POST,DELETE,OPTIONS&lt;/code&gt;&lt;/pre&gt;&lt;/figure&gt;
+
+
+&lt;h3&gt;See also&lt;/h3&gt;
+&lt;ul&gt;
+    &lt;li&gt;&lt;a href=&quot;http://zacstewart.github.io/2012/04/14/http-options-method.html&quot;&gt;Zac Stewart&#39;s blogpost about OPTIONS&lt;/a&gt;
+&lt;/ul&gt;
+
+&lt;h3&gt;Caveats&lt;/h3&gt;
+&lt;ul&gt;
+    &lt;li&gt;OPTIONS is not a very common implemented method.&lt;/li&gt;
+&lt;/ul&gt;
+</description>
+        <pubDate>Sat, 20 Apr 2013 00:00:00 +0800</pubDate>
+        <link>http://www.restcookbook.com/http%20methods/options/</link>
+        <guid isPermaLink="true">http://www.restcookbook.com/http%20methods/options/</guid>
+        
+        
+        <category>HTTP Methods</category>
+        
+      </item>
+    
+      <item>
+        <title>How do I let users log into my RESTful API?</title>
+        <description>&lt;h2 class=&quot;question&quot;&gt;I want users to login into my RESTful API so only they can see (protected) resources. What is the correct way to do this?&lt;/h2&gt;
+
+&lt;p&gt;One of the main differences between RESTful and other server-client communications services is that any session state in a RESTful setup is held in the client, the server is stateless. This requires the client to provide all information necessary to make the request.&lt;/p&gt;
+
+&lt;h3&gt;Using HTTP basic authentication&lt;/h3&gt;
+&lt;p&gt;The most simple way to deal with authentication is to use HTTP basic authentication. We use a special HTTP header where
+    we add &#39;username:password&#39; encoded in base64.&lt;/p&gt;
+
+&lt;figure class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-xml&quot; data-lang=&quot;xml&quot;&gt;GET / HTTP/1.1
+Host: example.org
+Authorization: Basic Zm9vOmJhcg==&lt;/code&gt;&lt;/pre&gt;&lt;/figure&gt;
+
+&lt;p&gt;
+Note that even though your credentials are encoded, they are not encrypted! It is very easy to retrieve the username and
+password from a basic authentication. Do not use this authentication scheme on plain HTTP, but only through SSL/TLS.&lt;/p&gt;
+
+&lt;h3&gt;HMAC&lt;/h3&gt;
+&lt;p&gt;One of the downsides of basic authentication is that we need to send over the password on every request. Also, it
+    does not safeguard against tampering of headers or body. Another way is to use HMAC (hash based message authentication).
+Instead of having passwords that need to be sent over, we actually send a hashed version of the password, together with more information.
+
+Let&#39;s assume we have the following credentials: username &quot;johndoe&quot;, password &quot;secret&quot;. Suppose we try to access a protected resource &lt;b&gt;/users/johndoe/financialrecords&lt;/b&gt;.
+
+First, we need to fetch all the information we need, and concatenate this.
+
+&lt;figure class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-xml&quot; data-lang=&quot;xml&quot;&gt;GET+/users/johndoe/financialrecords&lt;/code&gt;&lt;/pre&gt;&lt;/figure&gt;
+
+&lt;p&gt;Here, we just concatenate the HTTP verb and the actual URL. We could add other information as well, like the current timestamp, a
+    random number, or the md5 of the message body in order to prevent tampering of the body, or prevent replay attacks. Next, we generate
+    a hmac:&lt;/p&gt;
+
+&lt;figure class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-xml&quot; data-lang=&quot;xml&quot;&gt;digest = base64encode(hmac(&quot;sha256&quot;, &quot;secret&quot;, &quot;GET+/users/johndoe/financialrecords&quot;))&lt;/code&gt;&lt;/pre&gt;&lt;/figure&gt;
+
+&lt;p&gt;This digest we can send over as a HTTP header:&lt;/p&gt;
+
+&lt;figure class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-xml&quot; data-lang=&quot;xml&quot;&gt;GET /users/johndoe/financialrecords HTTP/1.1
+Host: example.org
+Authentication: hmac johndoe:[digest]&lt;/code&gt;&lt;/pre&gt;&lt;/figure&gt;
+
+&lt;p&gt;
+Right now, the server knows the user &quot;johndoe&quot; tries to access the resource. The server can generate the digest as
+well, since it has all information. (Note that the &quot;password&quot; is not encrypted on the server, as the server needs to know
+the actual value. Hence we call this a &quot;secret&quot;, not a &quot;password&quot;).
+&lt;/p&gt;
+
+&lt;p&gt;
+Even if somebody was listening in on the conversation, they could not use the authentication information to POST data to
+john&#39;s financial records, or look at some other users financial records, or any other URL, as this would change the digest and
+the eavesdropper does not have the secret that both the server and client has.&lt;/p&gt;
+&lt;p&gt;
+However, the eavesdropper could access John&#39;s financial records whenever it wants since it doesn&#39;t change the digest. This
+    is why many times more information is send over, like the current time, and a nonce:
+&lt;/p&gt;
+
+&lt;figure class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-xml&quot; data-lang=&quot;xml&quot;&gt;digest = base64encode(hmac(&quot;sha256&quot;, &quot;secret&quot;, &quot;GET+/users/johndoe/financialrecords+20apr201312:59:24+123456&quot;))&lt;/code&gt;&lt;/pre&gt;&lt;/figure&gt;
+
+&lt;p&gt;We added two extra pieces of information. The current date and a number that we only use once (nonce)&lt;/p&gt;
+
+&lt;figure class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-xml&quot; data-lang=&quot;xml&quot;&gt;GET /users/johndoe/financialrecords HTTP/1.1
+Host: example.org
+Authentication: hmac johndoe:123456:[digest]
+Date: 20 apr 2013 12:59:24&lt;/code&gt;&lt;/pre&gt;&lt;/figure&gt;
+
+&lt;p&gt;
+The server can reconstruct the digest again, since the client sends over the nonce and date. When the date is not in a
+certain range of the current servers time (say, 10 minutes), the server can ignore the message, as it probably is a
+replay of an earlier send message (note: either that, or the server or clients time is wrong. This is a common issue when
+dealing with time-limited authentications!).
+&lt;/p&gt;
+
+&lt;p&gt;
+The nonce is a number we only use once. If we want to access the same resource again, we MUST change this number. This
+means that every time we access a resource, the nonce will be different, and thus the digest will be different, even if we
+access the resource in the same second. This way we are sure that no replay attacks can be done. Each request is only valid
+once, and only once.&lt;/p&gt;
+
+&lt;h3&gt;OAuth&lt;/h3&gt;
+&lt;p&gt;One of the downsides of hmac is that there are no more passwords, but just plain secrets. When johns secret gets out,
+    everyone could use that secret to access the account of john. A common way to prevent this is to use temporary
+    tokens. John &quot;asks&quot; the server for a &quot;token&quot; and &quot;secret&quot;, and with these token and secret, it is allowed to access its
+    protected resources.&lt;/p&gt;
+&lt;p&gt;OAuth is a mechanism that allows you to create temporary tokens. It is a common used scheme for authentication and
+    authorization, however the OAuth(1.1) specification is a bit difficult to implement for beginners. However, many
+    libraries in pretty much every language exist to make this much easier to implement.&lt;/p&gt;
+
+&lt;h3&gt;OAuth2&lt;/h3&gt;
+&lt;p&gt;Even though the name suggests its the next version of OAuth, the whole structure has changed radically and cannot even
+    be considered a new version. OAuth2 is a complete new way of authentication which is easier to implement and maintain.
+    However, OAuth2 is not officially a standard yet, although many sites and organizations are using the current drafts.&lt;/p&gt;
+
+&lt;h3&gt;See also&lt;/h3&gt;
+&lt;ul&gt;
+    &lt;li&gt;&lt;a href=&quot;http://tools.ietf.org/html/rfc7235#section-2&quot;&gt;RFC 7235 - Access Authentication Framework&lt;/a&gt;
+    &lt;li&gt;&lt;a href=&quot;http://tools.ietf.org/html/rfc2617&quot;&gt;RFC 2617 - HTTP Authentication: Basic and Digest Access Authentication&lt;/a&gt;
+    &lt;li&gt;&lt;a href=&quot;http://oauth.net/&quot;&gt;OAuth specifications&lt;/a&gt;
+    &lt;li&gt;&lt;a href=&quot;http://tools.ietf.org/html/rfc6749&quot;&gt;RFC 6749 - OAuth2 proposed standard&lt;/a&gt;
+&lt;/ul&gt;
+
+&lt;h3&gt;Caveats&lt;/h3&gt;
+&lt;ul&gt;
+    &lt;li&gt;Basic authentication and OAuth versions MUST be protected through SSL/TLS. They should not be used over plain HTTP.&lt;/li&gt;
+    &lt;li&gt;Using nonces can improve your security, but you MUST store and compare nonces server-side.&lt;/li&gt;
+    &lt;li&gt;A common issue when using time-windows for request, is that either server or client is not using the correct time. Make
+        sure both server and client are using systems like NTP to keep times in sync&lt;/li&gt;
+&lt;/ul&gt;
+</description>
+        <pubDate>Sat, 20 Apr 2013 00:00:00 +0800</pubDate>
+        <link>http://www.restcookbook.com/basics/loggingin/</link>
+        <guid isPermaLink="true">http://www.restcookbook.com/basics/loggingin/</guid>
+        
+        
+        <category>Basics</category>
+        
+      </item>
+    
+      <item>
+        <title>Caching your REST API</title>
+        <description>&lt;h2 class=&quot;question&quot;&gt;Caching your REST API&lt;/h2&gt;
+
+&lt;p&gt;The goal of caching is never having to generate the same response twice. The benefit of doing this is that we gain speed and
+reduce server load. The best way to cache your API is to put a gateway cache (or reverse proxy) in front of it. Some
+frameworks provide their own reverse proxies, but a very powerful, open-source one is
+&lt;a href=&quot;https://www.varnish-cache.org/&quot;&gt;Varnish&lt;/a&gt;.
+
+&lt;p&gt;When a safe method is used on a resource URL, the reverse proxy should cache the response that is returned from your API. It
+will then use this cached response to answers all subsequent requests for the same resource before they hit your API. When an
+unsafe method is used on a resource URL, the cache ignores it and passes it to the API. The API is responsible for making sure
+that the cached resource is invalidated.&lt;/p&gt;
+
+&lt;p&gt;HTTP has an unofficial &lt;span class=&quot;http_method&quot;&gt;PURGE&lt;/span&gt; method that is used for purging caches. When an API receives a call with an unsafe method on
+a resource, it should fire a &lt;span class=&quot;http_method&quot;&gt;PURGE&lt;/span&gt; request on that resource so that the reverse proxy knows that the cached resource should
+be expired. Note that you will still have to configure your reverse proxy to actually remove a resource when it receives a
+request with the &lt;span class=&quot;http_method&quot;&gt;PURGE&lt;/span&gt; method.&lt;/p&gt;
+
+&lt;p&gt;The result will look like this:&lt;/p&gt;
+
+&lt;figure class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-xml&quot; data-lang=&quot;xml&quot;&gt;GET /article/1234 HTTP/1.1
+   - The resource is not cached yet
+   - Send request to the API
+   - Store response in cache and return
+
+GET /article/1234 HTTP/1.1
+   - The resource is cached
+   - Return response from cache
+
+PUT /article/1234 HTTP/1.1
+   - Unsafe method, send to API
+
+PURGE /article/1234 HTTP/1.1
+   - API sends PURGE method to the cache
+   - The resources is removed from the cache
+
+GET /article/1234 HTTP/1.1
+   - The resource is not cached yet
+   - Send request to the API
+   - Store response in cache and return&lt;/code&gt;&lt;/pre&gt;&lt;/figure&gt;
+
+&lt;h3&gt;See also&lt;/h3&gt;
+&lt;ul&gt;
+    &lt;li&gt;&lt;a href=&quot;http://tomayko.com/writings/things-caches-do&quot;&gt;Things Caches Do&lt;/a&gt;
+    &lt;li&gt;&lt;a href=&quot;http://www.mnot.net/cache_docs/&quot;&gt;Caching Tutorial&lt;/a&gt;
+&lt;/ul&gt;
+
+</description>
+        <pubDate>Tue, 18 Dec 2012 00:00:00 +0800</pubDate>
+        <link>http://www.restcookbook.com/basics/caching/</link>
+        <guid isPermaLink="true">http://www.restcookbook.com/basics/caching/</guid>
+        
+        
+        <category>Basics</category>
+        
+      </item>
+    
+      <item>
+        <title>How do I version my REST API?</title>
+        <description>&lt;h2 class=&quot;question&quot;&gt;What is the correct way to version my API?&lt;/h2&gt;
+
+&lt;p&gt;The &quot;URL&quot; way&lt;/p&gt;
+A commonly used way to version your API is to add a version number in the URL. For instance:
+
+&lt;figure class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-xml&quot; data-lang=&quot;xml&quot;&gt;/api/v1/article/1234&lt;/code&gt;&lt;/pre&gt;&lt;/figure&gt;
+
+To &quot;move&quot; to another API, one could increase the version number:
+
+&lt;figure class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-xml&quot; data-lang=&quot;xml&quot;&gt;/api/v2/article/1234&lt;/code&gt;&lt;/pre&gt;&lt;/figure&gt;
+
+
+&lt;p&gt;The hypermedia way&lt;/p&gt;
+
+&lt;figure class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-xml&quot; data-lang=&quot;xml&quot;&gt;GET /api/article/1234 HTTP/1.1
+Accept: application/vnd.api.article+xml; version=1.0&lt;/code&gt;&lt;/pre&gt;&lt;/figure&gt;
+
+
+&lt;h3&gt;See also&lt;/h3&gt;
+&lt;ul&gt;
+    &lt;li&gt;&lt;a href=&quot;#&quot;&gt;&lt;/a&gt;
+&lt;/ul&gt;
+
+&lt;h3&gt;Caveats&lt;/h3&gt;
+&lt;ul&gt;
+    &lt;li&gt;&lt;/li&gt;
+&lt;/ul&gt;
+</description>
+        <pubDate>Mon, 17 Dec 2012 00:00:00 +0800</pubDate>
+        <link>http://www.restcookbook.com/basics/versioning/</link>
+        <guid isPermaLink="true">http://www.restcookbook.com/basics/versioning/</guid>
+        
+        
+        <category>Basics</category>
+        
+      </item>
+    
+      <item>
+        <title>Is my API RESTful when I use JSON?</title>
+        <description>&lt;h2 class=&quot;question&quot;&gt;Is my API RESTful when I use (only) JSON?&lt;/h2&gt;
+
+&lt;p&gt;Short answer: no. Long answer: no, not yet. One of the key constraints on REST is that a RESTful API must use
+    hypermedia formats (the HATEOAS constraint). Unfortunately, JSON is not a hypermedia format. There is no predefined
+    way to deal with link discovery in JSON. One API could use the following for link discovery:&lt;/p&gt;
+
+&lt;figure class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-json&quot; data-lang=&quot;json&quot;&gt;&lt;span class=&quot;w&quot;&gt;    &lt;/span&gt;&lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;&lt;span class=&quot;w&quot;&gt;
+    &lt;/span&gt;&lt;span class=&quot;nt&quot;&gt;&quot;_links&quot;&lt;/span&gt;&lt;span class=&quot;w&quot;&gt; &lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt;&lt;span class=&quot;w&quot;&gt; &lt;/span&gt;&lt;span class=&quot;p&quot;&gt;[&lt;/span&gt;&lt;span class=&quot;w&quot;&gt;
+        &lt;/span&gt;&lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;&lt;span class=&quot;w&quot;&gt;
+            &lt;/span&gt;&lt;span class=&quot;nt&quot;&gt;&quot;rel&quot;&lt;/span&gt;&lt;span class=&quot;w&quot;&gt; &lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt;&lt;span class=&quot;w&quot;&gt; &lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;self&quot;&lt;/span&gt;&lt;span class=&quot;w&quot;&gt;
+            &lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;href&quot;&lt;/span&gt;&lt;span class=&quot;w&quot;&gt; &lt;/span&gt;&lt;span class=&quot;err&quot;&gt;:&lt;/span&gt;&lt;span class=&quot;w&quot;&gt; &lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;http://example.org/foo/bar&quot;&lt;/span&gt;&lt;span class=&quot;w&quot;&gt;
+        &lt;/span&gt;&lt;span class=&quot;p&quot;&gt;},&lt;/span&gt;&lt;span class=&quot;w&quot;&gt;
+        &lt;/span&gt;&lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;&lt;span class=&quot;w&quot;&gt;
+            &lt;/span&gt;&lt;span class=&quot;nt&quot;&gt;&quot;rel&quot;&lt;/span&gt;&lt;span class=&quot;w&quot;&gt; &lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt;&lt;span class=&quot;w&quot;&gt;
+            &lt;/span&gt;&lt;span class=&quot;err&quot;&gt;...&lt;/span&gt;&lt;span class=&quot;w&quot;&gt;
+        &lt;/span&gt;&lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;&lt;span class=&quot;w&quot;&gt;
+    &lt;/span&gt;&lt;span class=&quot;p&quot;&gt;]&lt;/span&gt;&lt;span class=&quot;w&quot;&gt;
+&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/figure&gt;
+
+&lt;p&gt;while another API would use something like this:&lt;/p&gt;
+
+&lt;figure class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-json&quot; data-lang=&quot;json&quot;&gt;&lt;span class=&quot;w&quot;&gt;    &lt;/span&gt;&lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;&lt;span class=&quot;w&quot;&gt;
+    &lt;/span&gt;&lt;span class=&quot;nt&quot;&gt;&quot;hyperlink&quot;&lt;/span&gt;&lt;span class=&quot;w&quot;&gt; &lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt;&lt;span class=&quot;w&quot;&gt; &lt;/span&gt;&lt;span class=&quot;p&quot;&gt;[&lt;/span&gt;&lt;span class=&quot;w&quot;&gt;
+        &lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;self&quot;&lt;/span&gt;&lt;span class=&quot;w&quot;&gt; &lt;/span&gt;&lt;span class=&quot;err&quot;&gt;:&lt;/span&gt;&lt;span class=&quot;w&quot;&gt; &lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;http://example.org/foo/bar&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt;&lt;span class=&quot;w&quot;&gt;
+        &lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;next&quot;&lt;/span&gt;&lt;span class=&quot;w&quot;&gt; &lt;/span&gt;&lt;span class=&quot;err&quot;&gt;:&lt;/span&gt;&lt;span class=&quot;w&quot;&gt; &lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;http://example.org/foo/bar/2&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt;&lt;span class=&quot;w&quot;&gt;
+    &lt;/span&gt;&lt;span class=&quot;p&quot;&gt;]&lt;/span&gt;&lt;span class=&quot;w&quot;&gt;
+&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/figure&gt;
+
+
+&lt;p&gt;Although JSON does&#39;t have inherent hypermedia support, some standardisation is on its way to change that. JSON-LD, which is already an official W3C standard,
+    and HAL, which is a personal project, formalize the expression of links in JSON so that clients can instantly follow and discover these links without having
+    to rely on out-of-band additional knowledge.&lt;/p&gt;
+
+&lt;h3&gt;See also&lt;/h3&gt;
+&lt;ul&gt;
+    &lt;li&gt;&lt;a href=&quot;http://stateless.co/hal_specification.html&quot;&gt;HAL specification&lt;/a&gt;
+    &lt;li&gt;&lt;a href=&quot;http://www.w3.org/TR/json-ld/&quot;&gt;JSON-LD specification&lt;/a&gt;
+&lt;/ul&gt;
+
+&lt;h3&gt;Caveats&lt;/h3&gt;
+&lt;ul&gt;
+    &lt;li&gt;Because JSON by itself has no hypermedia support, using JSON for APIs can and most probably will result in tight coupling between
+        clients and servers. Servers need to know exactly how you provide links in JSON (if at all). JSON-LD, a W3C Recommendation, or HAL can
+        reduce this coupling and allow you to formally present (hypermedia) links in your API.
+    &lt;/li&gt;
+&lt;/ul&gt;
+</description>
+        <pubDate>Mon, 17 Dec 2012 00:00:00 +0800</pubDate>
+        <link>http://www.restcookbook.com/mediatypes/json/</link>
+        <guid isPermaLink="true">http://www.restcookbook.com/mediatypes/json/</guid>
+        
+        
+        <category>Mediatypes</category>
+        
+      </item>
+    
+      <item>
+        <title>What is HATEOAS and why is it important?</title>
+        <description>&lt;h2 class=&quot;question&quot;&gt;What is HATEOAS and why is it important for my REST API?&lt;/h2&gt;
+
+&lt;p&gt;HATEOAS stands for &lt;b&gt;Hypertext As The Engine Of Application State&lt;/b&gt;. It means that hypertext should be used to
+    find your way through the API. An example:&lt;/p&gt;
+
+&lt;figure class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-xml&quot; data-lang=&quot;xml&quot;&gt;GET /account/12345 HTTP/1.1
+
+HTTP/1.1 200 OK
+&lt;span class=&quot;cp&quot;&gt;&amp;lt;?xml version=&quot;1.0&quot;?&amp;gt;&lt;/span&gt;
+&lt;span class=&quot;nt&quot;&gt;&amp;lt;account&amp;gt;&lt;/span&gt;
+    &lt;span class=&quot;nt&quot;&gt;&amp;lt;account_number&amp;gt;&lt;/span&gt;12345&lt;span class=&quot;nt&quot;&gt;&amp;lt;/account_number&amp;gt;&lt;/span&gt;
+    &lt;span class=&quot;nt&quot;&gt;&amp;lt;balance&lt;/span&gt; &lt;span class=&quot;na&quot;&gt;currency=&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;usd&quot;&lt;/span&gt;&lt;span class=&quot;nt&quot;&gt;&amp;gt;&lt;/span&gt;100.00&lt;span class=&quot;nt&quot;&gt;&amp;lt;/balance&amp;gt;&lt;/span&gt;
+    &lt;span class=&quot;nt&quot;&gt;&amp;lt;link&lt;/span&gt; &lt;span class=&quot;na&quot;&gt;rel=&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;deposit&quot;&lt;/span&gt; &lt;span class=&quot;na&quot;&gt;href=&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;/account/12345/deposit&quot;&lt;/span&gt; &lt;span class=&quot;nt&quot;&gt;/&amp;gt;&lt;/span&gt;
+    &lt;span class=&quot;nt&quot;&gt;&amp;lt;link&lt;/span&gt; &lt;span class=&quot;na&quot;&gt;rel=&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;withdraw&quot;&lt;/span&gt; &lt;span class=&quot;na&quot;&gt;href=&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;/account/12345/withdraw&quot;&lt;/span&gt; &lt;span class=&quot;nt&quot;&gt;/&amp;gt;&lt;/span&gt;
+    &lt;span class=&quot;nt&quot;&gt;&amp;lt;link&lt;/span&gt; &lt;span class=&quot;na&quot;&gt;rel=&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;transfer&quot;&lt;/span&gt; &lt;span class=&quot;na&quot;&gt;href=&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;/account/12345/transfer&quot;&lt;/span&gt; &lt;span class=&quot;nt&quot;&gt;/&amp;gt;&lt;/span&gt;
+    &lt;span class=&quot;nt&quot;&gt;&amp;lt;link&lt;/span&gt; &lt;span class=&quot;na&quot;&gt;rel=&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;close&quot;&lt;/span&gt; &lt;span class=&quot;na&quot;&gt;href=&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;/account/12345/close&quot;&lt;/span&gt; &lt;span class=&quot;nt&quot;&gt;/&amp;gt;&lt;/span&gt;
+&lt;span class=&quot;nt&quot;&gt;&amp;lt;/account&amp;gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/figure&gt;
+
+&lt;p&gt;Apart from the fact that we have 100 dollars (US) in our account, we can see 4 options: deposit more money,
+    withdraw money, transfer money to another account, or close our account. The &quot;link&quot;-tags allows us to find out the
+    URLs that are  needed for the specified actions. Now, let&#39;s suppose we didn&#39;t have 100 usd in the bank, but we
+    actually are in the red:&lt;/p&gt;
+
+&lt;figure class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-xml&quot; data-lang=&quot;xml&quot;&gt;GET /account/12345 HTTP/1.1
+
+HTTP/1.1 200 OK
+&lt;span class=&quot;cp&quot;&gt;&amp;lt;?xml version=&quot;1.0&quot;?&amp;gt;&lt;/span&gt;
+&lt;span class=&quot;nt&quot;&gt;&amp;lt;account&amp;gt;&lt;/span&gt;
+    &lt;span class=&quot;nt&quot;&gt;&amp;lt;account_number&amp;gt;&lt;/span&gt;12345&lt;span class=&quot;nt&quot;&gt;&amp;lt;/account_number&amp;gt;&lt;/span&gt;
+    &lt;span class=&quot;nt&quot;&gt;&amp;lt;balance&lt;/span&gt; &lt;span class=&quot;na&quot;&gt;currency=&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;usd&quot;&lt;/span&gt;&lt;span class=&quot;nt&quot;&gt;&amp;gt;&lt;/span&gt;-25.00&lt;span class=&quot;nt&quot;&gt;&amp;lt;/balance&amp;gt;&lt;/span&gt;
+    &lt;span class=&quot;nt&quot;&gt;&amp;lt;link&lt;/span&gt; &lt;span class=&quot;na&quot;&gt;rel=&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;deposit&quot;&lt;/span&gt; &lt;span class=&quot;na&quot;&gt;href=&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;/account/12345/deposit&quot;&lt;/span&gt; &lt;span class=&quot;nt&quot;&gt;/&amp;gt;&lt;/span&gt;
+&lt;span class=&quot;nt&quot;&gt;&amp;lt;/account&amp;gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/figure&gt;
+
+&lt;p&gt;Now we are 25 dollars in the red. Do you see that right now we have lost many of our options, and only depositing
+    money is valid? As long as we are in the red, we cannot close our account, nor transfer or withdraw any money from
+    the account. The hypertext is actually telling us what is allowed and what not: HATEOAS&lt;/p&gt;
+</description>
+        <pubDate>Mon, 17 Dec 2012 00:00:00 +0800</pubDate>
+        <link>http://www.restcookbook.com/basics/hateoas/</link>
+        <guid isPermaLink="true">http://www.restcookbook.com/basics/hateoas/</guid>
+        
+        
+        <category>Basics</category>
+        
+      </item>
+    
+      <item>
+        <title>What is the code-on-demand constraint?</title>
+        <description>&lt;h2 class=&quot;question&quot;&gt;What is the code-on-demand constraint, and why is it an optional constraint?&lt;/h2&gt;
+
+&lt;p&gt;Code-on-Demand (COD) is the only optional constraint in REST. It allows clients to improve its flexibility because in
+    fact it is the server who decides how certain things will be done. For instance, with Code-On-Demand, a client can
+    download a javascript, java applet or even a flash application in order to encrypt communication so servers are not
+    aware of any encryption routines / keys used in this process.
+&lt;/p&gt;
+
+&lt;p&gt;However, using COD reduces visibility, which is why this constraint is optional. Also, not every API needs this kind
+    of flexibility.&lt;/p&gt;
+
+
+&lt;h3&gt;See also&lt;/h3&gt;
+&lt;ul&gt;
+    &lt;li&gt;&lt;a href=&quot;http://www.ics.uci.edu/~fielding/pubs/dissertation/rest_arch_style.htm#sec_5_1_7&quot;&gt;Roy T. Fielding&#39;s dissertation - Code on demand&lt;/a&gt;
+&lt;/ul&gt;
+
+&lt;h3&gt;Caveats&lt;/h3&gt;
+&lt;ul&gt;
+    &lt;li&gt;Using code-on-demand reduces visibility.&lt;/li&gt;
+&lt;/ul&gt;
+</description>
+        <pubDate>Mon, 17 Dec 2012 00:00:00 +0800</pubDate>
+        <link>http://www.restcookbook.com/basics/codeondemand/</link>
+        <guid isPermaLink="true">http://www.restcookbook.com/basics/codeondemand/</guid>
+        
+        
+        <category>Basics</category>
+        
+      </item>
+    
+      <item>
+        <title>What is the Richardson Maturity Model?</title>
+        <description>&lt;h2 class=&quot;question&quot;&gt;What is the Richardson Maturity Model?&lt;/h2&gt;
+
+&lt;p&gt;The Richardson Maturity Model is a way to grade your API according to the constraints of REST. The better your API
+    adheres to these constraints, the higher its score is. The Richardson Maturity Model knows 4 levels (0-3), where level
+    3 designates a truly RESTful API.&lt;/p&gt;
+
+&lt;h3&gt;Level 0: Swamp of POX&lt;/h3&gt;
+&lt;p&gt;Level 0 uses its implementing protocol (normally HTTP, but it doesn&#39;t have to be) like a transport protocol.
+    That is, it tunnels requests and responses through its protocol without using the protocol to indicate application state.
+    It will use only one entry point (URI) and one kind of method (in HTTP, this normally is the &lt;span class=&quot;http_method&quot;&gt;POST&lt;/span&gt; method).
+    Examples of these are SOAP and XML-RPC.&lt;/p&gt;
+
+&lt;h3&gt;Level 1: Resources&lt;/h3&gt;
+&lt;p&gt;When your API can distinguish between different resources, it might be level 1. This level uses multiple URIs, where
+    every URI is the entry point to a specific resource. Instead of going through http://example.org/articles, you
+    actually distinguish between http://example.org/article/1 and http://example.org/article/2. Still, this level uses
+    only one single method like &lt;span class=&quot;http_method&quot;&gt;POST&lt;/span&gt;.&lt;/p&gt;
+
+&lt;h3&gt;Level 2: HTTP verbs&lt;/h3&gt;
+&lt;p&gt;To be honest, I don&#39;t like this level. This is because this level suggests that in order to be truly RESTful, your API
+    &lt;b&gt;MUST&lt;/b&gt; use HTTP verbs. It doesn&#39;t. REST is completely protocol agnostic, so if you want to use a different
+    protocol, your API can still be RESTful.&lt;/p&gt;
+&lt;p&gt;This level indicates that your API should use the protocol properties in order to deal with scalability and
+    failures. Don&#39;t use a single &lt;span class=&quot;http_method&quot;&gt;POST&lt;/span&gt; method for all, but make use of &lt;span class=&quot;http_method&quot;&gt;GET&lt;/span&gt; when you are requesting resources, and use the
+    &lt;span class=&quot;http_method&quot;&gt;DELETE&lt;/span&gt; method when you want to delete a resources. Also, use the response codes of your application protocol. Don&#39;t
+    use &lt;a class=&quot;http_code&quot; href=&quot;http://httpstatus.es/200&quot;&gt;200&lt;/a&gt; (OK) code when something went wrong for instance. By doing this for the HTTP application protocol, or any other
+    application protocol you like to use, you have reached level 2.&lt;/p&gt;
+
+&lt;h3&gt;Level 3: Hypermedia controls&lt;/h3&gt;
+&lt;p&gt;Level 3, the highest level, uses HATEOAS to deal with discovering the possibilities of your API towards the clients.
+    More information about HATEOAS can be found below.&lt;/p&gt;
+
+
+&lt;h3&gt;See also&lt;/h3&gt;
+&lt;ul&gt;
+    &lt;li&gt;&lt;a href=&quot;http://martinfowler.com/articles/richardsonMaturityModel.html&quot;&gt;Richardson Maturity Model&lt;/a&gt;
+&lt;/ul&gt;
+</description>
+        <pubDate>Fri, 14 Dec 2012 00:00:00 +0800</pubDate>
+        <link>http://www.restcookbook.com/miscellaneous/richardsonmaturitymodel/</link>
+        <guid isPermaLink="true">http://www.restcookbook.com/miscellaneous/richardsonmaturitymodel/</guid>
+        
+        
+        <category>Miscellaneous</category>
+        
+      </item>
+    
+      <item>
+        <title>Are REST and HTTP the same thing?</title>
+        <description>&lt;h2 class=&quot;question&quot;&gt;Are REST and HTTP the same thing?&lt;/h2&gt;
+
+&lt;p&gt;No, they are not. HTTP stands for &lt;b&gt;H&lt;/b&gt;yper&lt;b&gt;T&lt;/b&gt;ext &lt;b&gt;T&lt;/b&gt;ransfer &lt;b&gt;P&lt;/b&gt;rotocol and is a way to transfer
+    files. This protocol is used to link pages of hypertext in what we call the world-wide-web. However, there are other
+    transfer protocols available, like FTP and gopher, yet they are less popular.
+&lt;/p&gt;
+
+&lt;p&gt;&lt;b&gt;RE&lt;/b&gt;presentational &lt;b&gt;S&lt;/b&gt;tate &lt;b&gt;T&lt;/b&gt;ransfer, or REST, is a set of constraints that ensure a scalable,
+    fault-tolerant and easily extendible system. The world-wide-web is an example of such system (and the biggest
+    example, one might say). REST by itself is not a new invention, but it&#39;s the documentation on such systems like the
+    world-wide-web.&lt;/p&gt;
+
+&lt;p&gt;One thing that confuses people, is that REST and HTTP seem to be hand-in-hand. After all, the world-wide-web itself
+    runs on HTTP, and it makes sense, a RESTful API does the same. However, there is nothing in the REST constraints
+    that makes the usage of HTTP as a transfer protocol mandatory. It&#39;s perfectly possible to use other transfer
+    protocols like SNMP, SMTP and others to use, and your API could still very well be a RESTful API&lt;/p&gt;
+
+&lt;p&gt;In practice, most - if not all - RESTful APIs currently use HTTP as a transport layer, since the infrastructure,
+    servers and client libraries for HTTP are widely available already&lt;/p&gt;
+
+&lt;p&gt;Note that there is also a big difference between a RESTful API and a HTTP API. A RESTful API adheres ALL the REST
+    constraints set out in its &quot;format&quot; documentation (in the dissertation of Roy Fielding). A HTTP API is ANY API that
+    makes use of HTTP as their transfer protocol. This means that even SOAP can be considered a HTTP API, as long as it
+    will use HTTP for transport, but most HTTP APIs will make more and better use of the infrastructure and possibilities
+    of HTTP. Most HTTP APIs can be very close to becoming a truly RESTful API. This can be defined by their Richardsons
+    maturity level.&lt;/p&gt;
+
+&lt;h3&gt;See also&lt;/h3&gt;
+&lt;ul&gt;
+    &lt;li&gt;&lt;a href=&quot;http://www.ics.uci.edu/~fielding/pubs/dissertation/rest_arch_style.htm&quot;&gt;Roy Fielding - Representational State Transfer (REST)&lt;/a&gt;&lt;/li&gt;
+    &lt;li&gt;&lt;a href=&quot;http://martinfowler.com/articles/richardsonMaturityModel.html&quot;&gt;Richardsons Maturity Model&lt;/a&gt;
+    &lt;li&gt;&lt;a href=&quot;/Miscellaneous/richardsonmaturitymodel&quot;&gt;What is the Richardsons Maturity Model&lt;/a&gt;
+&lt;/ul&gt;
+</description>
+        <pubDate>Fri, 14 Dec 2012 00:00:00 +0800</pubDate>
+        <link>http://www.restcookbook.com/miscellaneous/rest-and-http/</link>
+        <guid isPermaLink="true">http://www.restcookbook.com/miscellaneous/rest-and-http/</guid>
+        
+        
+        <category>Miscellaneous</category>
+        
+      </item>
+    
+      <item>
+        <title>Custom content-types</title>
+        <description>&lt;h2 class=&quot;question&quot;&gt;How can I create my own custom content-types that are representations of users, categories, articles etc?&lt;/h2&gt;
+
+&lt;p&gt;Do not use a standard text/xml content-type. A client is not capable of handling this kind of information. Instead, use a custom format in the following form:&lt;/p&gt;
+
+&lt;figure class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-xml&quot; data-lang=&quot;xml&quot;&gt;Content-type: application/vnd+company.category+xml
+Content-type: application/vnd+company.category+html
+Content-type: application/vnd+company.category+json&lt;/code&gt;&lt;/pre&gt;&lt;/figure&gt;
+
+&lt;p&gt;This allows your clients to process the information (in this case: your categories) as the specified content-type. All three of these content-types are categories,
+but they are represented in different formats (xml, html and json). Even though this is still information that clients need to know in advance, clients know what to
+expect, since they can ask for the specific information (categories, in this case), without outside knowledge like the URL etc.&lt;/p&gt;
+
+&lt;p&gt;All application/vnd are vendor-specific content-types and are not standardized. These are for non-standard content-types only.&lt;/p&gt;
+</description>
+        <pubDate>Thu, 13 Dec 2012 00:00:00 +0800</pubDate>
+        <link>http://www.restcookbook.com/resources/using-custom-content-types/</link>
+        <guid isPermaLink="true">http://www.restcookbook.com/resources/using-custom-content-types/</guid>
+        
+        
+        <category>Resources</category>
+        
+      </item>
+    
+  </channel>
+</rss>

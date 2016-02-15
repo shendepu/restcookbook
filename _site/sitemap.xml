@@ -1,0 +1,126 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://www.sitemaps.org/schemas/sitemap/0.9
+        http://www.sitemaps.org/schemas/sitemap/0.9/sitemap.xsd">
+    
+    <url>
+        <loc>http://www.restcookbook.com/http%20methods/options/</loc>
+        <lastmod>2016-02-15T14:46:52+08:00</lastmod>
+        <changefreq>weekly</changefreq>
+    </url>
+    
+    <url>
+        <loc>http://www.restcookbook.com/basics/loggingin/</loc>
+        <lastmod>2016-02-15T14:46:52+08:00</lastmod>
+        <changefreq>weekly</changefreq>
+    </url>
+    
+    <url>
+        <loc>http://www.restcookbook.com/basics/caching/</loc>
+        <lastmod>2016-02-15T14:46:52+08:00</lastmod>
+        <changefreq>weekly</changefreq>
+    </url>
+    
+    <url>
+        <loc>http://www.restcookbook.com/basics/versioning/</loc>
+        <lastmod>2016-02-15T14:46:52+08:00</lastmod>
+        <changefreq>weekly</changefreq>
+    </url>
+    
+    <url>
+        <loc>http://www.restcookbook.com/mediatypes/json/</loc>
+        <lastmod>2016-02-15T14:46:52+08:00</lastmod>
+        <changefreq>weekly</changefreq>
+    </url>
+    
+    <url>
+        <loc>http://www.restcookbook.com/basics/hateoas/</loc>
+        <lastmod>2016-02-15T14:46:52+08:00</lastmod>
+        <changefreq>weekly</changefreq>
+    </url>
+    
+    <url>
+        <loc>http://www.restcookbook.com/basics/codeondemand/</loc>
+        <lastmod>2016-02-15T14:46:52+08:00</lastmod>
+        <changefreq>weekly</changefreq>
+    </url>
+    
+    <url>
+        <loc>http://www.restcookbook.com/miscellaneous/richardsonmaturitymodel/</loc>
+        <lastmod>2016-02-15T14:46:52+08:00</lastmod>
+        <changefreq>weekly</changefreq>
+    </url>
+    
+    <url>
+        <loc>http://www.restcookbook.com/miscellaneous/rest-and-http/</loc>
+        <lastmod>2016-02-15T14:46:52+08:00</lastmod>
+        <changefreq>weekly</changefreq>
+    </url>
+    
+    <url>
+        <loc>http://www.restcookbook.com/resources/using-custom-content-types/</loc>
+        <lastmod>2016-02-15T14:46:52+08:00</lastmod>
+        <changefreq>weekly</changefreq>
+    </url>
+    
+    <url>
+        <loc>http://www.restcookbook.com/resources/pagination/</loc>
+        <lastmod>2016-02-15T14:46:52+08:00</lastmod>
+        <changefreq>weekly</changefreq>
+    </url>
+    
+    <url>
+        <loc>http://www.restcookbook.com/resources/link-types/</loc>
+        <lastmod>2016-02-15T14:46:52+08:00</lastmod>
+        <changefreq>weekly</changefreq>
+    </url>
+    
+    <url>
+        <loc>http://www.restcookbook.com/resources/asynchroneous-operations/</loc>
+        <lastmod>2016-02-15T14:46:52+08:00</lastmod>
+        <changefreq>weekly</changefreq>
+    </url>
+    
+    <url>
+        <loc>http://www.restcookbook.com/miscellaneous/rest-presentations/</loc>
+        <lastmod>2016-02-15T14:46:52+08:00</lastmod>
+        <changefreq>weekly</changefreq>
+    </url>
+    
+    <url>
+        <loc>http://www.restcookbook.com/http%20methods/put-vs-post/</loc>
+        <lastmod>2016-02-15T14:46:52+08:00</lastmod>
+        <changefreq>weekly</changefreq>
+    </url>
+    
+    <url>
+        <loc>http://www.restcookbook.com/http%20methods/patch/</loc>
+        <lastmod>2016-02-15T14:46:52+08:00</lastmod>
+        <changefreq>weekly</changefreq>
+    </url>
+    
+    <url>
+        <loc>http://www.restcookbook.com/http%20methods/idempotency/</loc>
+        <lastmod>2016-02-15T14:46:52+08:00</lastmod>
+        <changefreq>weekly</changefreq>
+    </url>
+    
+    <url>
+        <loc>http://www.restcookbook.com/http%20headers/acceptlanguage/</loc>
+        <lastmod>2016-02-15T14:46:52+08:00</lastmod>
+        <changefreq>weekly</changefreq>
+    </url>
+    
+    <url>
+        <loc>http://www.restcookbook.com/http%20methods/400-vs-500/</loc>
+        <lastmod>2016-02-15T14:46:52+08:00</lastmod>
+        <changefreq>weekly</changefreq>
+    </url>
+    
+    
+    
+    
+    
+    
+</urlset>

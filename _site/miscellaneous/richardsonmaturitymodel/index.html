@@ -1,0 +1,287 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="description" content="What is the Richardson Maturity Model?">
+
+<title>What is the Richardson Maturity Model? - The RESTful cookbook</title>
+
+<!-- favicon -->
+<link rel="apple-touch-icon" sizes="57x57" href="/apple-icon-57x57.png">
+<link rel="apple-touch-icon" sizes="60x60" href="/apple-icon-60x60.png">
+<link rel="apple-touch-icon" sizes="72x72" href="/apple-icon-72x72.png">
+<link rel="apple-touch-icon" sizes="76x76" href="/apple-icon-76x76.png">
+<link rel="apple-touch-icon" sizes="114x114" href="/apple-icon-114x114.png">
+<link rel="apple-touch-icon" sizes="120x120" href="/apple-icon-120x120.png">
+<link rel="apple-touch-icon" sizes="144x144" href="/apple-icon-144x144.png">
+<link rel="apple-touch-icon" sizes="152x152" href="/apple-icon-152x152.png">
+<link rel="apple-touch-icon" sizes="180x180" href="/apple-icon-180x180.png">
+<link rel="icon" type="image/png" sizes="192x192"  href="/android-icon-192x192.png">
+<link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
+<link rel="icon" type="image/png" sizes="96x96" href="/favicon-96x96.png">
+<link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png">
+<link rel="manifest" href="/manifest.json">
+<meta name="msapplication-TileColor" content="#ffffff">
+<meta name="msapplication-TileImage" content="/ms-icon-144x144.png">
+<meta name="theme-color" content="#ffffff">
+
+<link rel="stylesheet" type="text/css" href="//maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap.min.css">
+<link rel="stylesheet" type="text/css" href="/css/base.css">
+<link rel="stylesheet" type="text/css" href="/css/restcookbook.css">
+
+<!-- HTML5 shim, for IE6-8 support of HTML5 elements -->
+<!--[if lt IE 9]>
+    <script src="//html5shim.googlecode.com/svn/trunk/html5.js"></script>
+<![endif] d-->
+
+<!-- Google fonts -->
+<link rel="stylesheet" href="//fonts.googleapis.com/css?family=Source+Sans+Pro:400,700,400italic&subset=latin-ext">
+
+    
+</head>
+
+<body>
+    <a href="https://github.com/restcookbook/restcookbook"><img style="position: absolute; top: 0; right: 0; border: 0;" src="https://camo.githubusercontent.com/365986a132ccd6a44c23a9169022c0b5c890c387/68747470733a2f2f73332e616d617a6f6e6177732e636f6d2f6769746875622f726962626f6e732f666f726b6d655f72696768745f7265645f6161303030302e706e67" alt="Fork me on GitHub" data-canonical-src="https://s3.amazonaws.com/github/ribbons/forkme_right_red_aa0000.png"></a>
+    <header id="l-header">
+    <div class="container">
+        <div class="row logo">
+            <h1><a href="/">restcookbook.com</a></h1>
+            <p>How to do stuff RESTful</p>
+        </div>
+
+    </div>
+</header>
+
+
+    <div class="container">
+        <div class="row">
+
+            <div id="content" class="col-xs-12 col-sm-9 col-sm-push-3">
+
+                
+
+                <h2 class="question">What is the Richardson Maturity Model?</h2>
+
+<p>The Richardson Maturity Model is a way to grade your API according to the constraints of REST. The better your API
+    adheres to these constraints, the higher its score is. The Richardson Maturity Model knows 4 levels (0-3), where level
+    3 designates a truly RESTful API.</p>
+
+<h3>Level 0: Swamp of POX</h3>
+<p>Level 0 uses its implementing protocol (normally HTTP, but it doesn't have to be) like a transport protocol.
+    That is, it tunnels requests and responses through its protocol without using the protocol to indicate application state.
+    It will use only one entry point (URI) and one kind of method (in HTTP, this normally is the <span class="http_method">POST</span> method).
+    Examples of these are SOAP and XML-RPC.</p>
+
+<h3>Level 1: Resources</h3>
+<p>When your API can distinguish between different resources, it might be level 1. This level uses multiple URIs, where
+    every URI is the entry point to a specific resource. Instead of going through http://example.org/articles, you
+    actually distinguish between http://example.org/article/1 and http://example.org/article/2. Still, this level uses
+    only one single method like <span class="http_method">POST</span>.</p>
+
+<h3>Level 2: HTTP verbs</h3>
+<p>To be honest, I don't like this level. This is because this level suggests that in order to be truly RESTful, your API
+    <b>MUST</b> use HTTP verbs. It doesn't. REST is completely protocol agnostic, so if you want to use a different
+    protocol, your API can still be RESTful.</p>
+<p>This level indicates that your API should use the protocol properties in order to deal with scalability and
+    failures. Don't use a single <span class="http_method">POST</span> method for all, but make use of <span class="http_method">GET</span> when you are requesting resources, and use the
+    <span class="http_method">DELETE</span> method when you want to delete a resources. Also, use the response codes of your application protocol. Don't
+    use <a class="http_code" href="http://httpstatus.es/200">200</a> (OK) code when something went wrong for instance. By doing this for the HTTP application protocol, or any other
+    application protocol you like to use, you have reached level 2.</p>
+
+<h3>Level 3: Hypermedia controls</h3>
+<p>Level 3, the highest level, uses HATEOAS to deal with discovering the possibilities of your API towards the clients.
+    More information about HATEOAS can be found below.</p>
+
+
+<h3>See also</h3>
+<ul>
+    <li><a href="http://martinfowler.com/articles/richardsonMaturityModel.html">Richardson Maturity Model</a>
+</ul>
+
+
+                <hr>
+
+                <div id="disqus_thread"></div>
+<script type="text/javascript">
+    var disqus_shortname = "restcookbook";
+
+    (function() {
+        var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+        dsq.src = '//' + disqus_shortname + '.disqus.com/embed.js';
+        (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+    })();
+</script>
+<noscript>Please enable JavaScript to view the <a href="https://disqus.com/?ref_noscript" rel="nofollow">comments powered by Disqus.</a></noscript>
+
+            </div>
+            <div class="col-xs-12 col-sm-3 col-sm-pull-9 sidebar">
+                <h2>Topics</h2>
+<ul class="topics">
+
+
+    <li class="topic-header"><b>Basics</b> (5 recipes)</li>
+    
+    <li>
+        <ul class='subnavlist'>
+            <li class='recipe'><a href="/basics/loggingin/">How do I let users log into my RESTful API?</a></li>
+        </ul>
+    </li>
+    
+    <li>
+        <ul class='subnavlist'>
+            <li class='recipe'><a href="/basics/caching/">Caching your REST API</a></li>
+        </ul>
+    </li>
+    
+    <li>
+        <ul class='subnavlist'>
+            <li class='recipe'><a href="/basics/versioning/">How do I version my REST API?</a></li>
+        </ul>
+    </li>
+    
+    <li>
+        <ul class='subnavlist'>
+            <li class='recipe'><a href="/basics/hateoas/">What is HATEOAS and why is it important?</a></li>
+        </ul>
+    </li>
+    
+    <li>
+        <ul class='subnavlist'>
+            <li class='recipe'><a href="/basics/codeondemand/">What is the code-on-demand constraint?</a></li>
+        </ul>
+    </li>
+    
+
+    <li class="topic-header"><b>HTTP Headers</b> (1 recipe)</li>
+    
+    <li>
+        <ul class='subnavlist'>
+            <li class='recipe'><a href="/http%20headers/acceptlanguage/">Unsatisfied Accept-Language header</a></li>
+        </ul>
+    </li>
+    
+
+    <li class="topic-header"><b>HTTP Methods</b> (5 recipes)</li>
+    
+    <li>
+        <ul class='subnavlist'>
+            <li class='recipe'><a href="/http%20methods/options/">How do I know which HTTP methods are supported</a></li>
+        </ul>
+    </li>
+    
+    <li>
+        <ul class='subnavlist'>
+            <li class='recipe'><a href="/http%20methods/put-vs-post/">When to use PUT or POST</a></li>
+        </ul>
+    </li>
+    
+    <li>
+        <ul class='subnavlist'>
+            <li class='recipe'><a href="/http%20methods/patch/">When to use the PATCH method</a></li>
+        </ul>
+    </li>
+    
+    <li>
+        <ul class='subnavlist'>
+            <li class='recipe'><a href="/http%20methods/idempotency/">What are idempotent and/or safe methods?</a></li>
+        </ul>
+    </li>
+    
+    <li>
+        <ul class='subnavlist'>
+            <li class='recipe'><a href="/http%20methods/400-vs-500/">When to send 4xx or 5xx codes</a></li>
+        </ul>
+    </li>
+    
+
+    <li class="topic-header"><b>Mediatypes</b> (1 recipe)</li>
+    
+    <li>
+        <ul class='subnavlist'>
+            <li class='recipe'><a href="/mediatypes/json/">Is my API RESTful when I use JSON?</a></li>
+        </ul>
+    </li>
+    
+
+    <li class="topic-header"><b>Miscellaneous</b> (3 recipes)</li>
+    
+    <li>
+        <ul class='subnavlist'>
+            <li class='recipe'><a href="/miscellaneous/richardsonmaturitymodel/">What is the Richardson Maturity Model?</a></li>
+        </ul>
+    </li>
+    
+    <li>
+        <ul class='subnavlist'>
+            <li class='recipe'><a href="/miscellaneous/rest-and-http/">Are REST and HTTP the same thing?</a></li>
+        </ul>
+    </li>
+    
+    <li>
+        <ul class='subnavlist'>
+            <li class='recipe'><a href="/miscellaneous/rest-presentations/">Where to find REST presentations</a></li>
+        </ul>
+    </li>
+    
+
+    <li class="topic-header"><b>Resources</b> (4 recipes)</li>
+    
+    <li>
+        <ul class='subnavlist'>
+            <li class='recipe'><a href="/resources/using-custom-content-types/">Custom content-types</a></li>
+        </ul>
+    </li>
+    
+    <li>
+        <ul class='subnavlist'>
+            <li class='recipe'><a href="/resources/pagination/">Paginating collections</a></li>
+        </ul>
+    </li>
+    
+    <li>
+        <ul class='subnavlist'>
+            <li class='recipe'><a href="/resources/link-types/">Using link-types in relations</a></li>
+        </ul>
+    </li>
+    
+    <li>
+        <ul class='subnavlist'>
+            <li class='recipe'><a href="/resources/asynchroneous-operations/">Asynchronous operations</a></li>
+        </ul>
+    </li>
+    
+
+
+</ul>
+
+            </div>
+        </div>
+
+    </div>
+
+    
+<footer id="l-footer">
+    <div class="container">
+
+        <p id="legal">
+            Maintained by Joshua Thijssen | Powered by <a href="http://jekyllrb.com">Jekyll</a> &amp; <a href="http://github.com/restcookbook">GitHub</a> | Design adapted on jekyll theme by <a href="http://unifreak.github.io">UniFreak</a>
+        </p>
+    </div>
+</footer>
+
+<script>
+  (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+  (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+  m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+  })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+
+  ga('create', 'UA-53222355-1', 'auto');
+  ga('send', 'pageview');
+
+</script>
+
+
+</body>
+</html>

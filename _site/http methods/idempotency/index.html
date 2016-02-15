@@ -1,0 +1,314 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="description" content="What are idempotent and/or safe methods?">
+
+<title>What are idempotent and/or safe methods? - The RESTful cookbook</title>
+
+<!-- favicon -->
+<link rel="apple-touch-icon" sizes="57x57" href="/apple-icon-57x57.png">
+<link rel="apple-touch-icon" sizes="60x60" href="/apple-icon-60x60.png">
+<link rel="apple-touch-icon" sizes="72x72" href="/apple-icon-72x72.png">
+<link rel="apple-touch-icon" sizes="76x76" href="/apple-icon-76x76.png">
+<link rel="apple-touch-icon" sizes="114x114" href="/apple-icon-114x114.png">
+<link rel="apple-touch-icon" sizes="120x120" href="/apple-icon-120x120.png">
+<link rel="apple-touch-icon" sizes="144x144" href="/apple-icon-144x144.png">
+<link rel="apple-touch-icon" sizes="152x152" href="/apple-icon-152x152.png">
+<link rel="apple-touch-icon" sizes="180x180" href="/apple-icon-180x180.png">
+<link rel="icon" type="image/png" sizes="192x192"  href="/android-icon-192x192.png">
+<link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
+<link rel="icon" type="image/png" sizes="96x96" href="/favicon-96x96.png">
+<link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png">
+<link rel="manifest" href="/manifest.json">
+<meta name="msapplication-TileColor" content="#ffffff">
+<meta name="msapplication-TileImage" content="/ms-icon-144x144.png">
+<meta name="theme-color" content="#ffffff">
+
+<link rel="stylesheet" type="text/css" href="//maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap.min.css">
+<link rel="stylesheet" type="text/css" href="/css/base.css">
+<link rel="stylesheet" type="text/css" href="/css/restcookbook.css">
+
+<!-- HTML5 shim, for IE6-8 support of HTML5 elements -->
+<!--[if lt IE 9]>
+    <script src="//html5shim.googlecode.com/svn/trunk/html5.js"></script>
+<![endif] d-->
+
+<!-- Google fonts -->
+<link rel="stylesheet" href="//fonts.googleapis.com/css?family=Source+Sans+Pro:400,700,400italic&subset=latin-ext">
+
+    
+</head>
+
+<body>
+    <a href="https://github.com/restcookbook/restcookbook"><img style="position: absolute; top: 0; right: 0; border: 0;" src="https://camo.githubusercontent.com/365986a132ccd6a44c23a9169022c0b5c890c387/68747470733a2f2f73332e616d617a6f6e6177732e636f6d2f6769746875622f726962626f6e732f666f726b6d655f72696768745f7265645f6161303030302e706e67" alt="Fork me on GitHub" data-canonical-src="https://s3.amazonaws.com/github/ribbons/forkme_right_red_aa0000.png"></a>
+    <header id="l-header">
+    <div class="container">
+        <div class="row logo">
+            <h1><a href="/">restcookbook.com</a></h1>
+            <p>How to do stuff RESTful</p>
+        </div>
+
+    </div>
+</header>
+
+
+    <div class="container">
+        <div class="row">
+
+            <div id="content" class="col-xs-12 col-sm-9 col-sm-push-3">
+
+                
+
+                <h2 class="question">What are idempotent and/or safe methods?</h2>
+
+<p>Safe methods are HTTP methods that do not modify resources. For instance, using <span class="http_method">GET</span> or <span class="http_method">HEAD</span> on a resource URL, should
+    NEVER change the resource. However, this is not completely true. It means: it won't change the resource representation.
+    It is still possible, that safe methods do change things on a server or resource, but this should not reflect in a
+    different representation.
+</p>
+
+<p>This means the following is incorrect, if this would actually delete the blogpost:</p>
+<figure class="highlight"><pre><code class="language-xml" data-lang="xml">GET /blog/1234/delete HTTP/1.1</code></pre></figure>
+
+<p>Safe methods are methods that can be cached, prefetched without any repercussions to the resource.</p>
+
+<h3>Idempotent methods</h3>
+<p>An idempotent HTTP method is a HTTP method that can be called many times without different outcomes. It would not
+    matter if the method is called only once, or ten times over. The result should be the same. Again, this only applies
+    to the result, not the resource itself. This still can be manipulated (like an update-timestamp, provided this
+    information is not shared in the (current) resource representation.</p>
+
+<p>Consider the following examples:</p>
+<figure class="highlight"><pre><code class="language-xml" data-lang="xml">  a = 4;</code></pre></figure>
+<figure class="highlight"><pre><code class="language-xml" data-lang="xml">  a++;</code></pre></figure>
+
+<p>The first example is idempotent: no matter how many times we execute this statement, a will always be 4. The second
+    example is not idempotent. Executing this 10 times will result in a different outcome as when running 5 times. Since
+    both examples are changing the value of a, both are non-safe methods.</p>
+
+<p>Idempotency is important in building a fault-tolerant API. Suppose a client wants to update a resource through <span class="http_method">POST</span>.
+    Since <span class="http_method">POST</span> is not a idempotent method, calling it multiple times can result in wrong updates. What would happen if
+    you sent out the <span class="http_method">POST</span> request to the server, but you get a timeout. Is the resource actually updated? Does the
+    timeout happened during sending the request to the server, or the response to the client? Can we safely retry again,
+    or do we need to figure out first what has happened with the resource? By using idempotent methods, we do not have
+    to answer this question, but we can safely resend the request until we actually get a response back from the server.</p>
+
+<p>Be careful when dealing with safe methods as well: if a seemingly safe method like <span class="http_method">GET</span> will change a resource, it might
+    be possible that any middleware client proxy systems between you and the server, will cache this response. Another
+    client who wants to change this resource through the same URL (like: http://example.org/api/article/1234/delete), will
+    not call the server, but return the information directly from the cache. Non-safe (and non-idempotent) methods will
+    never be cached by any middleware proxies</p>
+
+
+
+<h3>Overview of (some) HTTP methods</h3>
+<table style='margin: 3em'>
+    <tr><th>HTTP Method</th><th>Idempotent</th><th>Safe</th></tr>
+    <tr><td>OPTIONS    </td><td>yes       </td><td>yes</td></tr>
+    <tr><td>GET        </td><td>yes       </td><td>yes</td></tr>
+    <tr><td>HEAD       </td><td>yes       </td><td>yes</td></tr>
+    <tr><td>PUT        </td><td>yes       </td><td>no </td></tr>
+    <tr><td>POST       </td><td>no        </td><td>no </td></tr>
+    <tr><td>DELETE     </td><td>yes       </td><td>no </td></tr>
+    <tr><td>PATCH      </td><td>no        </td><td>no </td></tr>
+</table>
+
+
+<h3>See also</h3>
+<p>
+<ul>
+    <li><a href="http://tools.ietf.org/html/rfc7231#section-4.2">RFC 7231 - HTTP-1.1 Spec</a></li>
+    <li><a href="/HTTP Methods/put-vs-post/">When to use <span class="http_method">PUT</span> or <span class="http_method">POST</span>?</a></li>
+</ul>
+</p>
+
+
+
+
+                <hr>
+
+                <div id="disqus_thread"></div>
+<script type="text/javascript">
+    var disqus_shortname = "restcookbook";
+
+    (function() {
+        var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+        dsq.src = '//' + disqus_shortname + '.disqus.com/embed.js';
+        (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+    })();
+</script>
+<noscript>Please enable JavaScript to view the <a href="https://disqus.com/?ref_noscript" rel="nofollow">comments powered by Disqus.</a></noscript>
+
+            </div>
+            <div class="col-xs-12 col-sm-3 col-sm-pull-9 sidebar">
+                <h2>Topics</h2>
+<ul class="topics">
+
+
+    <li class="topic-header"><b>Basics</b> (5 recipes)</li>
+    
+    <li>
+        <ul class='subnavlist'>
+            <li class='recipe'><a href="/basics/loggingin/">How do I let users log into my RESTful API?</a></li>
+        </ul>
+    </li>
+    
+    <li>
+        <ul class='subnavlist'>
+            <li class='recipe'><a href="/basics/caching/">Caching your REST API</a></li>
+        </ul>
+    </li>
+    
+    <li>
+        <ul class='subnavlist'>
+            <li class='recipe'><a href="/basics/versioning/">How do I version my REST API?</a></li>
+        </ul>
+    </li>
+    
+    <li>
+        <ul class='subnavlist'>
+            <li class='recipe'><a href="/basics/hateoas/">What is HATEOAS and why is it important?</a></li>
+        </ul>
+    </li>
+    
+    <li>
+        <ul class='subnavlist'>
+            <li class='recipe'><a href="/basics/codeondemand/">What is the code-on-demand constraint?</a></li>
+        </ul>
+    </li>
+    
+
+    <li class="topic-header"><b>HTTP Headers</b> (1 recipe)</li>
+    
+    <li>
+        <ul class='subnavlist'>
+            <li class='recipe'><a href="/http%20headers/acceptlanguage/">Unsatisfied Accept-Language header</a></li>
+        </ul>
+    </li>
+    
+
+    <li class="topic-header"><b>HTTP Methods</b> (5 recipes)</li>
+    
+    <li>
+        <ul class='subnavlist'>
+            <li class='recipe'><a href="/http%20methods/options/">How do I know which HTTP methods are supported</a></li>
+        </ul>
+    </li>
+    
+    <li>
+        <ul class='subnavlist'>
+            <li class='recipe'><a href="/http%20methods/put-vs-post/">When to use PUT or POST</a></li>
+        </ul>
+    </li>
+    
+    <li>
+        <ul class='subnavlist'>
+            <li class='recipe'><a href="/http%20methods/patch/">When to use the PATCH method</a></li>
+        </ul>
+    </li>
+    
+    <li>
+        <ul class='subnavlist'>
+            <li class='recipe'><a href="/http%20methods/idempotency/">What are idempotent and/or safe methods?</a></li>
+        </ul>
+    </li>
+    
+    <li>
+        <ul class='subnavlist'>
+            <li class='recipe'><a href="/http%20methods/400-vs-500/">When to send 4xx or 5xx codes</a></li>
+        </ul>
+    </li>
+    
+
+    <li class="topic-header"><b>Mediatypes</b> (1 recipe)</li>
+    
+    <li>
+        <ul class='subnavlist'>
+            <li class='recipe'><a href="/mediatypes/json/">Is my API RESTful when I use JSON?</a></li>
+        </ul>
+    </li>
+    
+
+    <li class="topic-header"><b>Miscellaneous</b> (3 recipes)</li>
+    
+    <li>
+        <ul class='subnavlist'>
+            <li class='recipe'><a href="/miscellaneous/richardsonmaturitymodel/">What is the Richardson Maturity Model?</a></li>
+        </ul>
+    </li>
+    
+    <li>
+        <ul class='subnavlist'>
+            <li class='recipe'><a href="/miscellaneous/rest-and-http/">Are REST and HTTP the same thing?</a></li>
+        </ul>
+    </li>
+    
+    <li>
+        <ul class='subnavlist'>
+            <li class='recipe'><a href="/miscellaneous/rest-presentations/">Where to find REST presentations</a></li>
+        </ul>
+    </li>
+    
+
+    <li class="topic-header"><b>Resources</b> (4 recipes)</li>
+    
+    <li>
+        <ul class='subnavlist'>
+            <li class='recipe'><a href="/resources/using-custom-content-types/">Custom content-types</a></li>
+        </ul>
+    </li>
+    
+    <li>
+        <ul class='subnavlist'>
+            <li class='recipe'><a href="/resources/pagination/">Paginating collections</a></li>
+        </ul>
+    </li>
+    
+    <li>
+        <ul class='subnavlist'>
+            <li class='recipe'><a href="/resources/link-types/">Using link-types in relations</a></li>
+        </ul>
+    </li>
+    
+    <li>
+        <ul class='subnavlist'>
+            <li class='recipe'><a href="/resources/asynchroneous-operations/">Asynchronous operations</a></li>
+        </ul>
+    </li>
+    
+
+
+</ul>
+
+            </div>
+        </div>
+
+    </div>
+
+    
+<footer id="l-footer">
+    <div class="container">
+
+        <p id="legal">
+            Maintained by Joshua Thijssen | Powered by <a href="http://jekyllrb.com">Jekyll</a> &amp; <a href="http://github.com/restcookbook">GitHub</a> | Design adapted on jekyll theme by <a href="http://unifreak.github.io">UniFreak</a>
+        </p>
+    </div>
+</footer>
+
+<script>
+  (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+  (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+  m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+  })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+
+  ga('create', 'UA-53222355-1', 'auto');
+  ga('send', 'pageview');
+
+</script>
+
+
+</body>
+</html>
